@@ -113,12 +113,17 @@ class Seerr(ConnectorModule):
         if len(res["results"]) == 0:
             return [{}]  # Return a single empty dict to indicate a successful scrape
 
-        # Fetch all titles in parallel
-        titles = self._fetch_all_titles(res["results"])
+        # Fetch all titles in parallel only when detailed=True
+        titles = self._fetch_all_titles(res["results"]) if self.detailed else {}
 
         # Process the Requests
         for res_request in res["results"]:
-            title, seasons = titles.get(res_request["id"], ("Unknown", 0))
+            if self.detailed:
+                title, seasons = titles.get(res_request["id"], ("Unknown", 0))
+            else:
+                title = ""
+                seasons = res_request.get("seasonCount", 0)
+
             request = {
                 "requested": parse(res_request["createdAt"]).timestamp(),
                 "type": res_request["type"],
@@ -170,11 +175,15 @@ class Seerr(ConnectorModule):
         if len(res["results"]) == 0:
             return [{}] # Return a single empty dict to indicate a successful scrape
 
-        # Fetch all titles in parallel
-        titles = self._fetch_all_titles(res["results"])
+        # Fetch all titles in parallel only when detailed=True
+        titles = self._fetch_all_titles(res["results"]) if self.detailed else {}
 
         for res_issue in res["results"]:
-            title, _ = titles.get(res_issue["id"], ("Unknown", 0))
+            if self.detailed:
+                title, _ = titles.get(res_issue["id"], ("Unknown", 0))
+            else:
+                title = ""
+
             issue = {
                 "created": parse(res_issue["createdAt"]).timestamp(),
                 "updated": parse(res_issue["updatedAt"]).timestamp(),
